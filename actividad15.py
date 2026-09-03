@@ -3,7 +3,56 @@ import struct
 ARCHIVO = "datos.bin"
 
 def registrar_videojuego():
-    pass
+    try:
+        id = int(input("Ingrese el ID del videojuego: "))
+        titulo = input("Ingrese el título del videojuego: ")
+        plataforma = input("Ingrese la plataforma (ej. PC, PS, XB): ")
+        precio = float(input("Ingrese el precio: "))
+        desarrollador = input("Ingrese el desarrollador: ")
+        editor = input("Ingrese el editor: ")
+        fecha_lanzamiento = input("Ingrese la fecha de lanzamiento (8 caracteres, ej. DD/MM/YY o DD-MM-YY): ")
+        clasificacion_edad = input("Ingrese la clasificación de edad (3 caracteres, ej. +10, 12+, +18): ")
+        descripcion = input("Ingrese la descripción del videojuego: ")
+
+        titulo_bytes = titulo.encode("utf-8")
+        desarrollador_bytes = desarrollador.encode("utf-8")
+        editor_bytes = editor.encode("utf-8")
+        descripcion_bytes = descripcion.encode("utf-8")
+
+        longitud_titulo = len(titulo_bytes)
+        longitud_desarrollador = len(desarrollador_bytes)
+        longitud_editor = len(editor_bytes)
+        longitud_descripcion = len(descripcion_bytes)
+
+        with open(ARCHIVO, "ab") as archivo:
+            archivo.write(struct.pack("<i", id))
+
+            archivo.write(struct.pack("<I", longitud_titulo))
+            archivo.write(titulo_bytes)
+
+            archivo.write(struct.pack("2s", plataforma.encode("utf-8")))
+
+            archivo.write(struct.pack("<f", precio))
+
+            archivo.write(struct.pack("<I", longitud_desarrollador))
+            archivo.write(desarrollador_bytes)
+
+            archivo.write(struct.pack("<I", longitud_editor))
+            archivo.write(editor_bytes)
+
+            archivo.write(struct.pack("8s", fecha_lanzamiento.encode("utf-8")))
+
+            archivo.write(struct.pack("3s", clasificacion_edad.encode("utf-8")))
+
+            archivo.write(struct.pack("<I", longitud_descripcion))
+            archivo.write(descripcion_bytes)
+
+        print("\nVideojuego registrado exitosamente.\n")
+
+    except ValueError:
+        print("\nError: Asegúrese de ingresar valores válidos.\n")
+        return
+
 
 def mostrar_videojuegos():
     pass
