@@ -1,4 +1,5 @@
 import struct
+import os
 
 ARCHIVO = "datos.bin"
 
@@ -54,20 +55,204 @@ def registrar_videojuego():
         return
 
 
+def leer_videojuego(archivo):
+    datos_id = archivo.read(4)
+    if not datos_id or len(datos_id) != 4:
+        return None
+    id = struct.unpack("<i", datos_id)[0]
+
+    datos_longitud_titulo = archivo.read(4)
+    if len(datos_longitud_titulo) != 4:
+        return None
+    longitud_titulo = struct.unpack("<I", datos_longitud_titulo)[0]
+    titulo_bytes = archivo.read(longitud_titulo)
+    if len(titulo_bytes) != longitud_titulo:
+        return None
+    titulo = titulo_bytes.decode("utf-8")
+
+    datos_plataforma = archivo.read(2)
+    if len(datos_plataforma) != 2:
+        return None
+    plataforma = struct.unpack("2s", datos_plataforma)[0].decode("utf-8").rstrip("\x00")
+
+    datos_precio = archivo.read(4)
+    if len(datos_precio) != 4:
+        return None
+    precio = struct.unpack("<f", datos_precio)[0]
+
+    datos_longitud_desarrollador = archivo.read(4)
+    if len(datos_longitud_desarrollador) != 4:
+        return None
+    longitud_desarrollador = struct.unpack("<I", datos_longitud_desarrollador)[0]
+    desarrollador_bytes = archivo.read(longitud_desarrollador)
+    if len(desarrollador_bytes) != longitud_desarrollador:
+        return None
+    desarrollador = desarrollador_bytes.decode("utf-8")
+
+    datos_longitud_editor = archivo.read(4)
+    if len(datos_longitud_editor) != 4:
+        return None
+    longitud_editor = struct.unpack("<I", datos_longitud_editor)[0]
+    editor_bytes = archivo.read(longitud_editor)
+    if len(editor_bytes) != longitud_editor:
+        return None
+    editor = editor_bytes.decode("utf-8")
+
+    datos_fecha = archivo.read(8)
+    if len(datos_fecha) != 8:
+        return None
+    fecha_lanzamiento = struct.unpack("8s", datos_fecha)[0].decode("utf-8").rstrip("\x00")
+
+    datos_clasificacion = archivo.read(3)
+    if len(datos_clasificacion) != 3:
+        return None
+    clasificacion_edad = struct.unpack("3s", datos_clasificacion)[0].decode("utf-8").rstrip("\x00")
+
+    datos_longitud_descripcion = archivo.read(4)
+    if len(datos_longitud_descripcion) != 4:
+        return None
+    longitud_descripcion = struct.unpack("<I", datos_longitud_descripcion)[0]
+    descripcion_bytes = archivo.read(longitud_descripcion)
+    if len(descripcion_bytes) != longitud_descripcion:
+        return None
+    descripcion = descripcion_bytes.decode("utf-8")
+
+    return id, titulo, plataforma, precio, desarrollador, editor, fecha_lanzamiento, clasificacion_edad, descripcion
+
+
 def mostrar_videojuegos():
-    pass
+    print("\n--- Lista de Videojuegos Registrados ---")
+    try:
+        with open(ARCHIVO, "rb") as archivo:
+            numero_registro = 1
+            while True:
+                posicion_inicial = archivo.tell()
+                videojuego = leer_videojuego(archivo)
+
+                if videojuego is None:
+                    if numero_registro == 1:
+                        print("No hay videojuegos registrados en el archivo.")
+                    break
+
+                posicion_final = archivo.tell()
+                (id, titulo, plataforma, precio, desarrollador,
+                 editor, fecha_lanzamiento, clasificacion_edad, descripcion) = videojuego
+
+                tamanio_registro = posicion_final - posicion_inicial
+
+                print(f"\nRegistro #{numero_registro}")
+                print(f"Posición inicial: {posicion_inicial}")
+                print(f"Posición final: {posicion_final}")
+                print(f"Tamaño: {tamanio_registro} bytes")
+                print(f"ID: {id}")
+                print(f"Título: {titulo}")
+                print(f"Plataforma: {plataforma}")
+                print(f"Precio: {precio:.2f}")
+                print(f"Desarrollador: {desarrollador}")
+                print(f"Editor: {editor}")
+                print(f"Fecha de lanzamiento: {fecha_lanzamiento}")
+                print(f"Clasificación de edad: {clasificacion_edad}")
+                print(f"Descripción: {descripcion}")
+
+                numero_registro += 1
+            print()
+    except FileNotFoundError:
+        print("\nEl archivo todavía no existe.\n")
 
 def buscar_videojuego():
-    pass
+    try:
+        id_buscado = int(input("Ingrese el ID del videojuego a buscar: "))
+    except ValueError:
+        print("\nError: El ID debe ser un número entero.\n")
+        return
+
+    try:
+        with open(ARCHIVO, "rb") as archivo:
+            while True:
+                posicion = archivo.tell()
+                videojuego = leer_videojuego(archivo)
+
+                if videojuego is None:
+                    break
+
+                (id, titulo, plataforma, precio, desarrollador,
+                 editor, fecha_lanzamiento, clasificacion_edad, descripcion) = videojuego
+
+                if id == id_buscado:
+                    print("\n--- Videojuego Encontrado ---")
+                    print(f"Posición inicial en archivo: Byte {posicion}")
+                    print(f"ID: {id}")
+                    print(f"Título: {titulo}")
+                    print(f"Plataforma: {plataforma}")
+                    print(f"Precio: ${precio:.2f}")
+                    print(f"Desarrollador: {desarrollador}")
+                    print(f"Editor: {editor}")
+                    print(f"Fecha de lanzamiento: {fecha_lanzamiento}")
+                    print(f"Clasificación de edad: {clasificacion_edad}")
+                    print(f"Descripción: {descripcion}\n")
+                    return
+
+        print(f"\nNo se encontró ningún videojuego con el ID {id_buscado}.\n")
+
+    except FileNotFoundError:
+        print("\nEl archivo todavía no existe.\n")
 
 def mostrar_posiciones():
-    pass
+    print("\n--- Posición Inicial de Cada Registro ---")
+    try:
+        with open(ARCHIVO, "rb") as archivo:
+            numero_registro = 1
+            while True:
+                posicion_inicial = archivo.tell()
+                videojuego = leer_videojuego(archivo)
+
+                if videojuego is None:
+                    if numero_registro == 1:
+                        print("No hay videojuegos registrados en el archivo.")
+                    break
+
+                id_juego = videojuego[0]
+                titulo = videojuego[1]
+
+                print(f"Registro #{numero_registro} | ID: {id_juego} | Título: '{titulo}' -> Posición inicial: Byte {posicion_inicial}")
+                numero_registro += 1
+            print()
+    except FileNotFoundError:
+        print("\nEl archivo todavía no existe.\n")
 
 def mostrar_tamanos():
-    pass
+    print("\n--- Tamaño en Bytes de Cada Registro ---")
+    try:
+        with open(ARCHIVO, "rb") as archivo:
+            numero_registro = 1
+            while True:
+                posicion_inicial = archivo.tell()
+                videojuego = leer_videojuego(archivo)
+
+                if videojuego is None:
+                    if numero_registro == 1:
+                        print("No hay videojuegos registrados en el archivo.")
+                    break
+
+                posicion_final = archivo.tell()
+                tamanio = posicion_final - posicion_inicial
+
+                id_juego = videojuego[0]
+                titulo = videojuego[1]
+
+                print(f"Registro #{numero_registro} | ID: {id_juego} | Título: '{titulo}' | Tamaño: {tamanio} bytes")
+                numero_registro += 1
+            print()
+    except FileNotFoundError:
+        print("\nEl archivo todavía no existe.\n")
 
 def mostrar_tamano_total():
-    pass
+    print("\n--- Tamaño Total del Archivo ---")
+    try:
+        tamano_total = os.path.getsize(ARCHIVO)
+        print(f"Tamaño total del archivo: {tamano_total} bytes\n")
+    except FileNotFoundError:
+        print("\nEl archivo todavía no existe.\n")
 
 
 
